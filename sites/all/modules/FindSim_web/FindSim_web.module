@@ -1,0 +1,438 @@
+<?php
+
+function FindSim_web_menu() {
+  $items = array();
+
+  $items['FindSim_web/FindSimForm'] = array( //this creates a URL that will call this form at "examples/form-example"
+    'title' => 'FindSim Form', //page title
+    'description' => 'A form to mess around with.',
+    'page callback' => 'drupal_get_form', //this is the function that will be called when the page is accessed.  for a form, use drupal_get_form
+    'page arguments' => array('FindSim_web_form'), //put the name of the form here
+    'access callback' => TRUE
+  );
+
+  return $items;
+}
+
+function FindSim_web_form($form, &$form_state) {
+ 
+ $very_small_length = 10;
+ $small_length = 100;
+ $normal_length = 255;
+ $expt_source_array = array (
+                'Paper' => t('Paper'),
+                'InHouse' => t('In House'),
+                'Experiment' => t('Experiment'),
+        );
+ $common_group_attrs = array(
+        '#type' => 'fieldset',
+	'#tree' => TRUE,
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+ );
+ $expt_type_array = array(
+	'TimeSeries' => t('TimeSeries'),
+	'DoseResponse' => t('DoseResponse'),
+	'BarChart' => t('BarChart'),
+);
+ 
+ $time_units_array = array(
+	'sec' => t('Seconds'),
+	'millisec' => t('Miliseconds'),
+	'microsec' => t('Microseconds'),
+	'nanosec' => t('Nanoseconds'),
+	'min' => t('Minutes'),	
+	'hrs' => t('Hours'),
+	'days' => t('Days')
+);
+
+ $quantity_units_array = array(
+        'M' => t('Molar'),
+        'mM' => t('Milimolar'),
+        'uM' => t('Micromolar'),
+        'nM' => t('Nanomolar'),
+        'pM' => t('Picomolar'),
+        'mV' => t('Milivolt'),
+        'uV' => t('Microvolt'),
+	'V' => t('Volt'),
+	'mA' => t('Miliampere'),
+	'uA' => t('Microampere'),
+	'nA' => t('Nanoampere'),
+	'pA' => t('Picoampere'),
+	'number' => t('Number'),
+	'ratio' => t('Ratio'),
+);
+
+ $field_array = array(
+        'nInit' => t('Initial number'),
+        'n' => t('Number'),
+        'conc' => t('Concentration'),
+        'concInit' => t('Initial concentration'),
+        'inject' => t('Current injected'),
+        'Vclamp' => t('Voltage clamp'),
+);
+
+ $readout_field_array = array(
+        'Vm' => t('Voltage'),
+        'n' => t('Number'),
+        'conc' => t('Concentration'),
+);
+
+  $log_options_array = array (
+        'useXlog' => t('Use X log?'),
+        'useYlog' => t('Use Y log?'),
+	'useNormalization' => t('Use Normalization?')
+);
+
+ $models_array = array();	// array to get list of models added by a user
+// $form_groups = array(
+//	'group1' => array_merge_recursive(array ('#title' => t('Experimental metadate'),),$common_group_attrs),
+//	'group2' => ('Experimental Context'),
+//	'group3' => ('Stimuli'),
+//	'group4' => ('Readouts'),
+//	'group5' => ('Model Mapping'), 
+ //);
+ $form['group1'] = array_merge_recursive($common_group_attrs,array(
+	'#title' => t('Experimental metadata'),
+ ));
+
+ $form['group2'] = array_merge_recursive($common_group_attrs,array(
+	'#title' => t('Experimental context'),
+));
+
+ $form['group3'] = array_merge_recursive($common_group_attrs,array(
+	'#title' => t('Stimuli'),
+ ));
+
+ $form['group4'] = array_merge_recursive($common_group_attrs,array(
+	'#title' => t('Readouts'),
+ ));
+
+ $form['group5'] = array_merge_recursive($common_group_attrs,array(
+	'#title' => t('Model mapping'),
+));
+
+///////////////////////////////////////////////////////////
+// part 1 of the FindSim form i.e. Experimental matadata
+///////////////////////////////////////////////////////////
+
+ $form['group1']['transcriber'] = array(
+	'#type' => 'textfield',
+	'#title' => 'Transcribers name',
+	'#maxlength' => $normal_length,
+	//'#required' => TRUE,
+);
+ 
+ $form['group1']['organization'] = array(
+        '#type' => 'textfield',
+        '#title' => 'organization',
+        '#maxlength' => $normal_length,
+        //'#required' =>  TRUE,
+);
+
+ $form['group1']['emailId'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Email ID',
+        '#maxlength' => $normal_length,
+        //'#required' => TRUE,
+);
+
+ $form['group1']['exptSource'] = array(
+        '#type' => 'select',
+        '#title' => 'Experiment Source',
+        '#required' => TRUE,
+	'#options' => $expt_source_array,
+);
+
+ $form['group1']['citationId'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Citation ID',
+        '#maxlength' => $normal_length,
+        //'#required' => TRUE,
+);
+
+ $form['group1']['authors'] = array(
+        '#type' => 'textfield',
+        '#title' =>t( 'Author(s)'),
+        '#maxlength' => $normal_length,
+        //'#required' => TRUE,
+);
+
+ $form['group1']['journal'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Journal',
+        '#maxlength' => $normal_length,
+        //'#required' => TRUE,
+);
+
+///////////////////////////////////////////////////////////
+// part 2 of the FindSim form i.e. Experiment context
+///////////////////////////////////////////////////////////
+
+ $form['group2']['exptType'] = array(
+        '#type' => 'select',
+        '#title' => 'Experiment Type',
+        '#required' => TRUE,
+        '#options' => $expt_type_array,
+);
+ $form['group2']['species'] = array(
+	'#type' => 'textfield',	
+	'#title' => t('Species'),
+	'#maxlenght' => $normal_length,
+//	'#required' => TRUE
+);
+ $form['group2']['cell-types'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Cell-types'),
+        '#maxlength' => $normal_length,
+);
+
+ $form['group2']['temprature'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Temprature (in *celsius)'),
+        '#maxlength' => $normal_length,
+);
+
+ $form['group2']['includingPathway'] = array(
+        '#type' => 'textfield',
+        '#title' => t('includingPathway'),
+        '#maxlength' => $normal_length,
+);
+
+ $form['group2']['details'] = array(
+	'#type' => 'textfield',
+	'#title' => t('details'),
+	'#maxlength' => $normal_length,
+);
+ $form['group2']['notes'] = array(
+	'#type' => 'textfield',
+	'#title' => 'notes',
+	'#maxlength' => $normal_length,
+);
+
+///////////////////////////////////////////////////////////
+// part 3 of the FindSim form i.e. Stimuli
+///////////////////////////////////////////////////////////
+
+$form['group3']['timeunits'] = array(
+        '#type' => 'select',
+        '#title' => 'Time Units',
+        '#required' => TRUE,
+        '#options' => $time_units_array,
+);
+
+ $form['group3']['quantityunits'] = array(
+        '#type' => 'select',
+        '#title' => 'Quantity Units',
+        '#required' => TRUE,
+        '#options' => $quantity_units_array,
+);
+
+ $form['group3']['entities'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Entities',
+        '#required' => TRUE,
+//        '#options' => $time_units_array,
+	'#maxlength' => $normal_length,
+);
+ $form['group3']['field'] = array(
+        '#type' => 'select',
+        '#title' => 'Field',
+        '#required' => TRUE,
+        '#options' => $field_array,
+);
+ $form['group3']['data'] = array(
+	'#type' => 'fieldset',
+	'#title' => 'Data',
+);
+
+ $form['group3']['data']['Time'] = array (
+	'#type' => 'textfield',
+	'#title' => 'Time',
+	'#attributes' => array (
+		'type' => 'number',
+	), 
+	'#maxlength' => $very_small_length,
+);
+
+ $form['group3']['data']['value'] = array (
+        '#type' => 'textfield',
+        '#title' => 'Value',
+        '#attributes' => array (
+                'type' => 'number'
+        ),
+        '#maxlength' => $very_small_length,
+
+);
+
+///////////////////////////////////////////////////////////
+// part 4 of the FindSim form i.e. Readouts
+///////////////////////////////////////////////////////////
+
+ $form['group4']['timeunits'] = array ( 
+        '#type' => 'select',
+        '#title' => 'Time Units',
+        '#required' => TRUE,
+        '#options' => $time_units_array,
+);
+
+ $form['group4']['quantityunits'] = array (
+        '#type' => 'select',
+        '#title' => 'Quantity Units',
+        '#required' => TRUE,
+        '#options' => $quantity_units_array,
+);
+
+ $form['group4']['log-usage'] = array (
+	'#title' => t(''), 
+	'#type' => 'checkboxes',
+	'#description' => t('some description (optional)'),
+	'#options' => $log_options_array,
+);
+
+ $form['group4']['settleTime'] = array (
+	'#title' => t('Settle Time'),
+	'#type' => 'textfield',
+	'#attribute' => array (
+		'type' => 'number',
+	),
+);
+
+ $form['group4']['ratioReferenceTime'] = array (
+        '#type' => 'textfield',
+        '#title' => 'ratioReferenceTime',
+        '#required' => TRUE,
+        '#attribute' => array(
+		'type' => 'number'
+	),
+);
+
+ $form['group4']['ratioReferenceEntities'] = array (
+        '#type' => 'textfield',
+        '#title' => 'ratioReferenceEntities',
+        '#required' => TRUE,
+	'#maxlength' => $normal_length
+);
+
+ $form['group4']['ratioReferenceDose'] = array (
+        '#type' => 'textfield',
+        '#title' => 'ratioReferenceDose',
+        '#required' => TRUE,
+        '#attribute' => array(
+                'type' => 'number'
+        ),
+);
+
+$form['group4']['entities'] = array (
+        '#type' => 'textfield',
+        '#title' => 'Entities',
+        '#required' => TRUE,
+        '#maxlength' => $normal_length
+);
+
+$form['group4']['Field'] = array (
+        '#type' => 'select',
+        '#title' => 'Field',
+        '#required' => TRUE,
+        '#options' => $readout_field_array
+);
+
+ $form['group4']['data'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Data',
+);
+
+ $form['group4']['data']['Time'] = array (
+        '#type' => 'textfield',
+        '#title' => 'Time',
+        '#attributes' => array (
+                'type' => 'number',
+        ),
+        '#maxlength' => $very_small_length,
+);
+
+ $form['group4']['data']['value'] = array (
+        '#type' => 'textfield',
+        '#title' => 'Value',
+        '#attributes' => array (
+                'type' => 'number'
+        ),
+        '#maxlength' => $very_small_length,
+
+);
+
+ $form['group4']['data']['sem'] = array (
+        '#type' => 'textfield',
+        '#title' => 'Sem',
+        '#attributes' => array (
+                'type' => 'number'
+        ),
+        '#maxlength' => $very_small_length,
+
+);
+
+///////////////////////////////////////////////////////////
+// part 4 of the FindSim form i.e. Readouts
+///////////////////////////////////////////////////////////
+ 
+ $form['group5']['fileName'] = array (
+        '#type' => 'select',
+        '#title' => 'Model file',
+        '#required' => TRUE,
+        '#options' => $models_array
+);
+
+  
+ $form['group5']['citationId'] = array (
+        '#type' => 'textfield',
+        '#title' => 'Citation Id',
+        '#maxlength' => $normal_length,
+	'#required' => TRUE
+);
+
+ $form['group5']['citation'] = array (
+        '#type' => 'textfield',
+        '#title' => 'Citation',
+        '#maxlength' => $normal_length,
+	'#required' => TRUE
+);
+
+ $form['group5']['authors'] = array (
+        '#type' => 'textfield',
+        '#title' => t('Author(s)'),
+        '#maxlength' => $normal_length,
+        '#required' => TRUE
+);
+ $form['group5']['modelSubset'] = array (
+        '#type' => 'textarea',
+        '#title' => 'Model subset',
+//        '#maxlength' => $very_large_length,
+        '#required' => TRUE,
+	'#resizable' => TRUE
+);
+ 
+ $form['group5']['modelLookup'] = array (
+        '#type' => 'textarea',
+        '#title' => 'Model lookup',
+        '#maxlength' => $very_small_length,
+        '#required' => TRUE,
+	'#resizable' => TRUE
+);
+///////////////////////////////////////////////////////////
+// button to submit the form
+///////////////////////////////////////////////////////////
+ $form['submit_button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  );
+  
+  return $form;
+}
+ 
+ 
+function FindSim_web_form_validate($form, &$form_state) {
+
+}
+
+function FindSim_web_form_submit($form, &$form_state) {
+}

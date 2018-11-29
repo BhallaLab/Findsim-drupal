@@ -1,0 +1,5 @@
+core = "7.x"
+
+description = "A module to build webpages/forms for the FindSim web application"
+
+name = "FindSim_web Module"
